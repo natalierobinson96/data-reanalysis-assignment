@@ -1,0 +1,47 @@
+---
+title: "Data Reanalysis Assignment"
+author: "Natalie Robinson"
+date: "October 17, 2017"
+output: html_document
+---
+
+library(foreign)
+file.choose()
+"C:\\Users/natalierobinson/Desktop\\OHMatingspss2.sav"
+dataset = read.spss("C:\\Users/natalierobinson/Desktop\\OHMatingspss2.sav", to.data.frame = TRUE)
+
+db = file.choose()
+dataset = read.spss(db, to.data.frame=TRUE)
+
+head(dataset)
+View(dataset)
+
+# CAN'T OPEN .SPO??
+library(foreign)
+file.choose()
+"C:\\Users/natalierobinson/Desktop\\TESTOSTERONE DATA OUPT2.spo"
+dataset2 = read.spss("C:\\Users/natalierobinson/Desktop\\TESTOSTERONE DATA OUPT2.spo", to.data.frame = TRUE)
+
+db2 = file.choose()
+dataset2 = read.spss(db2, to.data.frame=TRUE)
+
+head(dataset2)
+View(dataset2)
+
+
+# From McIntyre file:
+
+```{r}
+setwd("C:/Documents and Settings/Owner/My Documents/RESEARCH/Cheryl")
+mating <- read.csv("matings.csv", header = TRUE)
+library(nlme)
+fm1 <- nlme(mating01 ~ SSasymp(male2miss, Asym, R0, lrc),
+		data = mating,
+            fixed = Asym + R0 + lrc ~ 1,
+            random = Asym ~ 1,
+		groups = ~female,
+            start = c(Asym = 103, R0 = -8.5, lrc = -3.3))
+summary(fm1)
+fm2 <- update(fm1, random = pdDiag(Asym + lrc ~ 1))
+summary(fm2)
+```

@@ -4,44 +4,103 @@ author: "Natalie Robinson"
 date: "October 17, 2017"
 output: html_document
 ---
+# Female reproductive strategies in orangutans, evidence for female choice and counterstrategies to infanticide in a species with frequent sexual coercion
+**Cheryl D Knott, Melissa Emery Thompson, Rebecca M Stumpf and Matthew H McIntyre**
 
-library(foreign)
-file.choose()
-"C:\\Users/natalierobinson/Desktop\\OHMatingspss2.sav"
-dataset = read.spss("C:\\Users/natalierobinson/Desktop\\OHMatingspss2.sav", to.data.frame = TRUE)
+The paper can be accessed [here](https://github.com/natalierobinson96/data-reanalysis-assignment/blob/master/Knott%202010%20Proc%20B%20Orangutan%20Sexual%20Coercion%20copy.pdf)
 
-db = file.choose()
-dataset = read.spss(db, to.data.frame=TRUE)
+# Summary of Paper
 
-head(dataset)
-View(dataset)
+  Orangutans have exceptionally high rates of forced copulations. Traditionally, it was assumed that this was a strategy used by unflanged males, who are sexually mature but have not developed secondary sexual characteristics like prime males who have large cheek flanges. Little thought was given to how female strategies may have shaped or responded to this behavior. Knott et al. (2010) found that male morph alone was not a good predictor of mating dynamics among wild Bornean orangutans, but rather female conception risk mediated the occurence of male-female interactions. 
+  Knott et al. (2010) assayed urine samples and compared ovarian hormone profiles with the sexual behavior of females and males in order to understand the females' ovulatory cycles (as they do not have obvious sexual swellings). Behavioral data was collected from 1994-2003 at the Cabang Panti Research Site in Gunung Palung National Park, West Kalimantan, Indonesia. During the 45,500 hours of observation, 387 encounters occured between males and females. Of these, male and female reproductive status could be determined for 153 encounters. 21 matings (between 10 males and 7 females) were observed during these encounters. They found that females were more likely to mate cooperatively with prime flanged males near ovulation, while they were more willing to associate and mate with non-prime males when conception risk was low. 
 
-# CAN'T OPEN .SPO??
-library(foreign)
-file.choose()
-"C:\\Users/natalierobinson/Desktop\\TESTOSTERONE DATA OUPT2.spo"
-dataset2 = read.spss("C:\\Users/natalierobinson/Desktop\\TESTOSTERONE DATA OUPT2.spo", to.data.frame = TRUE)
-
-db2 = file.choose()
-dataset2 = read.spss(db2, to.data.frame=TRUE)
-
-head(dataset2)
-View(dataset2)
-
-
-# From McIntyre file:
+# Obtaining the Data
+I first recieved this data in a .sav format, as it had been exported from SPSS. I was able to open the file in R using the "foreign" package and the command read.spss, though I decided it would be easier to manipulate the data if it were in a .csv file.
+I was able to do this online using [this website](http://pspp.benpfaff.org/) where you can upload a .sav file and then download the corresponding .csv file. This file is available in my Github repository titled "data-reanalysis-assignment."
 
 ```{r}
-setwd("C:/Documents and Settings/Owner/My Documents/RESEARCH/Cheryl")
-mating <- read.csv("matings.csv", header = TRUE)
-library(nlme)
-fm1 <- nlme(mating01 ~ SSasymp(male2miss, Asym, R0, lrc),
-		data = mating,
-            fixed = Asym + R0 + lrc ~ 1,
-            random = Asym ~ 1,
-		groups = ~female,
-            start = c(Asym = 103, R0 = -8.5, lrc = -3.3))
-summary(fm1)
-fm2 <- update(fm1, random = pdDiag(Asym + lrc ~ 1))
-summary(fm2)
+# getting the data into R
+library(curl)
+f <- curl("https://raw.githubusercontent.com/natalierobinson96/data-reanalysis-assignment/master/matings%20with%20endocrine%20data.csv")
+d <- read.csv(f, header = TRUE, sep = ",")
+head(d)
 ```
+
+# Replication 1
+First I replicated Figure 1 from the paper. This figure shows the distribution of matings with respect to male type and female ovulatory status.
+
+First I created 3 variables of female mating type. Each female was either pregnant, in the periovulatory period, or neither (non-periovulatory).
+
+```{r, eval = FALSE}
+nonPOP <- filter(d, preg == "0" & POP == "0")
+nonPOP #matings with females not in periovulatory period; currently cycling
+```
+```{r, eval = FALSE}
+pregnant <- filter(d, preg == "1")
+pregnant #matings with pregnant females 
+```
+```{r, eval = FALSE}
+POP <- filter(d, POP == "1")
+POP #matings with females in periovulatory period
+```
+
+Next I created 6 more variables which will serve as each entry of the replicated bar plot. The 3 female ovulatory statuses stay the same, though they are divided bewtween those who mated with prime males and those who mated with non-prime males (either unflanged or past-prime).
+For each variable I also counted the number of occurences of the type of mating by counting the number of rows.
+
+```{r, eval = FALSE}
+nonPOP_nonprime <- filter(nonPOP, prime == "0")
+nonPOP_nonprime
+totalmatings1 <- length(attributes(nonPOP_nonprime)$row.names)
+```
+
+```{r, eval = FALSE}
+nonPOP_prime <- filter(nonPOP, prime == "1")
+nonPOP_prime
+totalmatings2 <- length(attributes(nonPOP_prime)$row.names)
+```
+
+```{r, eval = FALSE}
+pregnant_nonprime <- filter(pregnant, prime == "0")
+pregnant_nonprime
+totalmatings3 <- length(attributes(pregnant_nonprime)$row.names)
+```
+
+```{r, eval = FALSE}
+pregnant_prime <- filter(pregnant, prime == "1")
+pregnant_prime
+totalmatings4 <- length(attributes(pregnant_prime)$row.names)
+```
+
+```{r, eval = FALSE}
+POP_nonprime <- filter(POP, prime == "0")
+POP_nonprime
+totalmatings5 <- length(attributes(POP_nonprime)$row.names)
+```
+
+```{r, eval = FALSE}
+POP_prime <- filter(POP, prime == "1")
+POP_prime
+totalmatings6 <- length(attributes(POP_prime)$row.names)
+```
+
+I then created a vector of each of the values of occurences.
+```{r, eval = FALSE}
+v <- c(totalmatings1, totalmatings2, totalmatings3, totalmatings4, totalmatings5, totalmatings6)
+
+figure1 <- barplot(v, main = "Figure 1", xlab = "female endocrine status", ylab = "mating events observed", names.arg = c("non-periovulatory","non-periovulatory","pregnant","pregnant", "periovulatory", "periovulatory"), col = "black", density = c(100, 0, 100, 0, 100, 0), space = c(1, 0, 1, 0, 1, 0))
+```
+
+This is what the original figure from the paper looked like:
+
+<img src="img/Figure 1 pdf.pdf" width="200px"/>
+# this is not working
+
+They are the same!
+
+It is possible that there is a more concise way to replicate this figure, though this way seemed the most logical to me, given the format of the data.
+
+# Replication 2
+
+# Replication 3
+
+

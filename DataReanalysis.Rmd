@@ -14,9 +14,20 @@ The paper can be accessed [here](https://github.com/natalierobinson96/data-reana
   Orangutans have exceptionally high rates of forced copulations. Traditionally, it was assumed that this was a strategy used by unflanged males, who are sexually mature but have not developed secondary sexual characteristics like prime males who have large cheek flanges. Little thought was given to how female strategies may have shaped or responded to this behavior. Knott et al. (2010) found that male morph alone was not a good predictor of mating dynamics among wild Bornean orangutans, but rather female conception risk mediated the occurence of male-female interactions. 
   Knott et al. (2010) assayed urine samples and compared ovarian hormone profiles with the sexual behavior of females and males in order to understand the females' ovulatory cycles (as they do not have obvious sexual swellings). Behavioral data was collected from 1994-2003 at the Cabang Panti Research Site in Gunung Palung National Park, West Kalimantan, Indonesia. During the 45,500 hours of observation, 387 encounters occured between males and females. Of these, male and female reproductive status could be determined for 153 encounters. 21 matings (between 10 males and 7 females) were observed during these encounters. They found that females were more likely to mate cooperatively with prime flanged males near ovulation, while they were more willing to associate and mate with non-prime males when conception risk was low. 
 
+# Prerequisites
+First, I loaded in the required packages.
+```{r}
+library(curl)
+library(dplyr)
+library(stats)
+library(AICcmodavg)
+library(MASS)
+library(knitr)
+```
+
 # Obtaining the Data
-I first recieved this data in a .sav format, as it had been exported from SPSS. I was able to open the file in R using the "foreign" package and the command read.spss, though I decided it would be easier to manipulate the data if it were in a .csv file.
-I was able to do this online using [this website](http://pspp.benpfaff.org/) where you can upload a .sav file and then download the corresponding .csv file. This file is available in my Github repository titled "data-reanalysis-assignment." First, I loaded in the main csv file, which contains all of the compiled data.
+I first recieved this data in various files of .sav format, as it had been exported from SPSS. I was able to open the files in R using the "foreign" package and the command read.spss, though I decided it would be easier to manipulate the data if it were in a .csv file, as I am more familiar with this.
+I was able to do this online using [this website](http://pspp.benpfaff.org/) where you can upload a .sav file and then download the corresponding .csv file. The files are available in my Github repository titled "data-reanalysis-assignment." First, I loaded in the main csv file, which contains all of the compiled data.
 
 ```{r}
 # getting the data into R
@@ -31,17 +42,17 @@ First I replicated Figure 1 from the paper. This figure shows the distribution o
 
 First I created 3 variables of female mating type. Each female was either pregnant, in the periovulatory period, or neither (non-periovulatory).
 
-```{r, eval = FALSE}
+```{r}
 nonPOP <- filter(d, preg == "0" & POP == "0")
 nonPOP #matings with females not in periovulatory period; currently cycling
 ```
 
-```{r, eval = FALSE}
+```{r}
 pregnant <- filter(d, preg == "1")
 pregnant #matings with pregnant females 
 ```
 
-```{r, eval = FALSE}
+```{r}
 POP <- filter(d, POP == "1")
 POP #matings with females in periovulatory period
 ```
@@ -51,44 +62,44 @@ POP #matings with females in periovulatory period
 Next I created 6 more variables which will serve as each entry of the replicated bar plot. The 3 female ovulatory statuses stay the same, though they are divided bewtween those who mated with prime males and those who mated with non-prime males (either unflanged or past-prime).
 For each variable I also counted the number of occurences of the type of mating by counting the number of rows.
 
-```{r, eval = FALSE}
+```{r}
 nonPOP_nonprime <- filter(nonPOP, prime == "0")
 nonPOP_nonprime
 totalmatings1 <- length(attributes(nonPOP_nonprime)$row.names)
 ```
 
-```{r, eval = FALSE}
+```{r}
 nonPOP_prime <- filter(nonPOP, prime == "1")
 nonPOP_prime
 totalmatings2 <- length(attributes(nonPOP_prime)$row.names)
 ```
 
-```{r, eval = FALSE}
+```{r}
 pregnant_nonprime <- filter(pregnant, prime == "0")
 pregnant_nonprime
 totalmatings3 <- length(attributes(pregnant_nonprime)$row.names)
 ```
 
-```{r, eval = FALSE}
+```{r}
 pregnant_prime <- filter(pregnant, prime == "1")
 pregnant_prime
 totalmatings4 <- length(attributes(pregnant_prime)$row.names)
 ```
 
-```{r, eval = FALSE}
+```{r}
 POP_nonprime <- filter(POP, prime == "0")
 POP_nonprime
 totalmatings5 <- length(attributes(POP_nonprime)$row.names)
 ```
 
-```{r, eval = FALSE}
+```{r}
 POP_prime <- filter(POP, prime == "1")
 POP_prime
 totalmatings6 <- length(attributes(POP_prime)$row.names)
 ```
 
 I then created a vector of each of the values of occurences.
-```{r, eval = FALSE}
+```{r}
 v <- c(totalmatings1, totalmatings2, totalmatings3, totalmatings4, totalmatings5, totalmatings6)
 
 barplot(v, main = "Figure 1", xlab = "female endocrine status", ylab = "mating events observed", names.arg = c("non-periovulatory","non-periovulatory","pregnant","pregnant", "periovulatory", "periovulatory"), col = "black", density = c(100, 0, 100, 0, 100, 0), space = c(1, 0, 1, 0, 1, 0))
@@ -118,28 +129,26 @@ head(d2)
 ```
 
 Next I created a new dataframe which only includes the observation entries (in which a male and female interacted with each other) which were included in the final analysis (in which both male and female reproductive status were known):
-```{r, eval = FALSE}
+```{r}
 d2 <- filter(d2, InteractionwithMale == "Y")
 d2 <- filter(d2, included == "1")
 head(d2)
 ```
-```{r, echo = FALSE} 
-head(d2)
-```
+
 This contains 331 observations, however, the paper states that only 153 encounters were included in the analysis. I continued on anyway.
 
 As before, I created the 3 categories of female endocrine status:
-```{r, eval = FALSE}
+```{r}
 nonPOP <- filter(d2, lact == "1")
 head(nonPOP) #matings with females not in periovulatory period; currently cycling
 ```
 
-```{r, eval = FALSE}
+```{r}
 pregnant <- filter(d2, preg == "1")
 head(pregnant) #matings with pregnant females 
 ```
 
-```{r, eval = FALSE}
+```{r}
 POP <- filter(d2, POP == "1")
 head(POP) #matings with females in periovulatory period
 ```
@@ -147,157 +156,28 @@ head(POP) #matings with females in periovulatory period
 I created 6 more variables which serve as each entry of the replicated bar plot. The 3 female ovulatory statuses stay the same, though they are divided bewtween those who encountered prime males and those who encountered non-prime males (either unflanged or past-prime).
 For each variable I also counted the number of occurences of encounters by counting the number of rows. This is the same as what I did in the initial replication.
 
-```{r, eval = FALSE}
-nonPOP_nonprime <- filter(nonPOP, prime == "0")
-totalmatings1 <- length(attributes(nonPOP_nonprime)$row.names)
-```
-```{r, eval = FALSE}
-nonPOP_prime <- filter(nonPOP, prime == "1")
-totalmatings2 <- length(attributes(nonPOP_prime)$row.names)
-```
-```{r, eval = FALSE}
-pregnant_nonprime <- filter(pregnant, prime == "0")
-totalmatings3 <- length(attributes(pregnant_nonprime)$row.names)
-```
-```{r, eval = FALSE}
-pregnant_prime <- filter(pregnant, prime == "1")
-totalmatings4 <- length(attributes(pregnant_prime)$row.names)
-```
-```{r, eval = FALSE}
-POP_nonprime <- filter(POP, prime == "0")
-totalmatings5 <- length(attributes(POP_nonprime)$row.names)
-```
-```{r, eval = FALSE}
-POP_prime <- filter(POP, prime == "1")
-totalmatings6 <- length(attributes(POP_prime)$row.names)
-```
-
-I then created a vector of each of the values of occurences.
-```{r, eval = FALSE}
-v2 <- c(totalmatings1, totalmatings2, totalmatings3, totalmatings4, totalmatings5, totalmatings6)
-
-barplot(v2, main = "Figure 2", xlab = "female endocrine status", ylab = "encounters observed", names.arg = c("non-periovulatory","non-periovulatory","pregnant","pregnant", "periovulatory", "periovulatory"), col = "black", density = c(100, 0, 100, 0, 100, 0), space = c(1, 0, 1, 0, 1, 0))
-```
-
-This did not turn out the same as the original figure. The "pregnant" and "periovulatory" categories look correct, though the values for the "non-periovulatory" category are too low. Unsure how to fix this, I tried using a different file, which contained a shortened version of the interaction data.
-
-I loaded in the other converted file and created a new dataframe which only includes the observations which are in the final analysis:
-```{r, eval = FALSE}
-# getting the data into R
-library(curl)
-f2 <- curl("https://raw.githubusercontent.com/natalierobinson96/data-reanalysis-assignment/master/interactions%20(short).csv")
-d2 <- read.csv(f2, header = TRUE, sep = ",")
-d2 <- filter(d2, InteractionwithMale == "Y")
-head(d2)
-```
-```{r, echo = FALSE} 
-head(d2)
-```
-
-This file already had the interactions divided into columns of the 6 categories for the barplot, so I filtered these out. 
-```{r, eval = FALSE}
-nonPOP_nonprime <- filter(d2, nPOPnprime == "1")
-totalmatings1 <- length(attributes(nonPOP_nonprime)$row.names)
-```
-```{r, eval = FALSE}
-nonPOP_prime <- filter(d2, nPOPprime == "1")
-totalmatings2 <- length(attributes(nonPOP_prime)$row.names)
-```
-```{r, eval = FALSE}
-pregnant_nonprime <- filter(d2, CYCNprime == "1")
-totalmatings3 <- length(attributes(pregnant_nonprime)$row.names)
-```
-```{r, eval = FALSE}
-pregnant_prime <- filter(d2, CYCprime == "1")
-totalmatings4 <- length(attributes(pregnant_prime)$row.names)
-```
-```{r, eval = FALSE}
-POP_nonprime <- filter(d2, POPnprime == "1")
-totalmatings5 <- length(attributes(POP_nonprime)$row.names)
-```
-```{r, eval = FALSE}
-POP_prime <- filter(d2, POPprime == "1")
-totalmatings6 <- length(attributes(POP_prime)$row.names)
-```
-
-I then created a vector of each of the values of occurences.
-```{r, eval = FALSE}
-v2 <- c(totalmatings1, totalmatings2, totalmatings3, totalmatings4, totalmatings5, totalmatings6)
-
-barplot(v2, main = "Figure 2", xlab = "female endocrine status", ylab = "encounters observed", names.arg = c("non-periovulatory","non-periovulatory","pregnant","pregnant", "periovulatory", "periovulatory"), col = "black", density = c(100, 0, 100, 0, 100, 0), space = c(1, 0, 1, 0, 1, 0))
-```
-
-Here, the "periovulatory" columns remain correct, the "pregnant" columns are now too high, and the "non-periovulatory" columns remain incorrect. 
-
-After trying more iterations of code with both of the files, I noticed a column titled "endomiss" in the original long version of the interactions file. This column is filled in for each interaciton observation with either a "0" or "1". My best guess is that this indicates whether or not the endocrine data from urine samples is missing or not. "0" would indicate that it is not missing (so the interaction can be used), while "1" would indicate that the endocrine data is missing, and should be excluded from the analysis. I added this into the filter of my original code to see if it would help me.
-
-First, I loaded the original set of data in to R.
 ```{r}
-library(curl)
-f2 <- curl("https://raw.githubusercontent.com/natalierobinson96/data-reanalysis-assignment/master/interactions.csv")
-d2 <- read.csv(f2, header = TRUE, sep = ",")
-head(d2)
-```
-
-Next I created a new dataframe which only includes the observation entries which were included in the final analysis.
-```{r, eval = FALSE}
-d2 <- filter(d2, InteractionwithMale == "Y")
-d2 <- filter(d2, included == "1")
-d2 <- filter(d2, endomiss == "0")
-head(d2) # finally I got it down to the 153 observations!!
-```
-```{r, echo = FALSE} 
-head(d2)
-```
-Finally, this dataframe contains 153 rows -- the correct number of observations!
-
-As before, I created the 3 categories of female endocrine status:
-```{r, eval = FALSE}
-nonPOP <- filter(d2, preg == "0" & POP == "0") #matings with females not in periovulatory period; currently cycling
-```
-```{r, eval = FALSE}
-pregnant <- filter(d2, preg == "1") #matings with pregnant females 
-```
-```{r, eval = FALSE}
-POP <- filter(d2, POP == "1") #matings with females in periovulatory period
-```
-
-Then I created 6 more variables which will serve as each entry of the replicated bar plot. The 3 female ovulatory statuses stay the same, though they are divided bewtween those who encountered prime males and those who encountered non-prime males (either unflanged or past-prime).
-For each variable I also counted the number of occurences of encounters by counting the number of rows.
-
-```{r, eval = FALSE}
 nonPOP_nonprime <- filter(nonPOP, prime == "0")
-nonPOP_nonprime
 totalmatings1 <- length(attributes(nonPOP_nonprime)$row.names)
 ```
-
-```{r, eval = FALSE}
+```{r}
 nonPOP_prime <- filter(nonPOP, prime == "1")
-nonPOP_prime
 totalmatings2 <- length(attributes(nonPOP_prime)$row.names)
 ```
-
-```{r, eval = FALSE}
+```{r}
 pregnant_nonprime <- filter(pregnant, prime == "0")
-pregnant_nonprime
 totalmatings3 <- length(attributes(pregnant_nonprime)$row.names)
 ```
-
-```{r, eval = FALSE}
+```{r}
 pregnant_prime <- filter(pregnant, prime == "1")
-pregnant_prime
 totalmatings4 <- length(attributes(pregnant_prime)$row.names)
 ```
-
-```{r, eval = FALSE}
+```{r}
 POP_nonprime <- filter(POP, prime == "0")
-POP_nonprime
 totalmatings5 <- length(attributes(POP_nonprime)$row.names)
 ```
-
-```{r, eval = FALSE}
+```{r}
 POP_prime <- filter(POP, prime == "1")
-POP_prime
 totalmatings6 <- length(attributes(POP_prime)$row.names)
 ```
 
@@ -312,11 +192,142 @@ This is what the figure from the paper looks like:
 
 <img src="img/Figure 2.pdf" width="500px"/>
 
+This replication did not turn out the same as the original figure. The "pregnant" and "periovulatory" categories look correct, though the values for the "non-periovulatory" category are too low. Unsure how to fix this, I tried using a different file, which contained a shortened version of the interaction data.
+
+I loaded in the other converted file and created a new dataframe which only includes the observations which are in the final analysis:
+```{r}
+# getting the data into R
+library(curl)
+f2 <- curl("https://raw.githubusercontent.com/natalierobinson96/data-reanalysis-assignment/master/interactions%20(short).csv")
+d2 <- read.csv(f2, header = TRUE, sep = ",")
+d2 <- filter(d2, InteractionwithMale == "Y")
+head(d2)
+```
+
+This file already had the interactions divided into columns of the 6 categories for the barplot, so I filtered these out. 
+```{r}
+nonPOP_nonprime <- filter(d2, nPOPnprime == "1")
+totalmatings1 <- length(attributes(nonPOP_nonprime)$row.names)
+```
+```{r}
+nonPOP_prime <- filter(d2, nPOPprime == "1")
+totalmatings2 <- length(attributes(nonPOP_prime)$row.names)
+```
+```{r}
+pregnant_nonprime <- filter(d2, CYCNprime == "1")
+totalmatings3 <- length(attributes(pregnant_nonprime)$row.names)
+```
+```{r}
+pregnant_prime <- filter(d2, CYCprime == "1")
+totalmatings4 <- length(attributes(pregnant_prime)$row.names)
+```
+```{r}
+POP_nonprime <- filter(d2, POPnprime == "1")
+totalmatings5 <- length(attributes(POP_nonprime)$row.names)
+```
+```{r}
+POP_prime <- filter(d2, POPprime == "1")
+totalmatings6 <- length(attributes(POP_prime)$row.names)
+```
+
+I then created a vector of each of the values of occurences.
+```{r}
+v2 <- c(totalmatings1, totalmatings2, totalmatings3, totalmatings4, totalmatings5, totalmatings6)
+
+barplot(v2, main = "Figure 2", xlab = "female endocrine status", ylab = "encounters observed", names.arg = c("non-periovulatory","non-periovulatory","pregnant","pregnant", "periovulatory", "periovulatory"), col = "black", density = c(100, 0, 100, 0, 100, 0), space = c(1, 0, 1, 0, 1, 0))
+```
+
+Here, the "periovulatory" columns remain correct, the "pregnant" columns are now too high, and the "non-periovulatory" columns remain incorrect. 
+
+After trying more iterations of code with both of the files, I noticed a column titled "endomiss" in the original long version of the interactions file. This column is filled in for each interaciton observation with either a "0" or "1". My best guess is that this indicates whether or not the endocrine data from urine samples is missing or not. "0" would indicate that it is not missing (so the interaction can be used), while "1" would indicate that the endocrine data is missing, and should be excluded from the analysis. I added this into the filter of my original code to see if it would help me.
+
+First, I loaded the original set of data in to R.
+```{r}
+library(curl)
+f2 <- curl("https://raw.githubusercontent.com/natalierobinson96/data-reanalysis-assignment/master/interactions.csv")
+d2 <- read.csv(f2, header = TRUE, sep = ",")
+```
+
+Next I created a new dataframe which only includes the observation entries which were included in the final analysis.
+```{r}
+d2 <- filter(d2, InteractionwithMale == "Y")
+d2 <- filter(d2, included == "1")
+d2 <- filter(d2, endomiss == "0")
+head(d2) # I got it down to the 153 observations!!
+```
+Finally, this dataframe contains 153 rows -- the correct number of observations!
+
+As before, I created the 3 categories of female endocrine status:
+```{r}
+nonPOP <- filter(d2, preg == "0" & POP == "0") #matings with females not in periovulatory period; currently cycling
+```
+```{r}
+pregnant <- filter(d2, preg == "1") #matings with pregnant females 
+```
+```{r}
+POP <- filter(d2, POP == "1") #matings with females in periovulatory period
+```
+
+Then I created 6 more variables which will serve as each entry of the replicated bar plot. The 3 female ovulatory statuses stay the same, though they are divided bewtween those who encountered prime males and those who encountered non-prime males (either unflanged or past-prime).
+For each variable I also counted the number of occurences of encounters by counting the number of rows.
+
+```{r}
+nonPOP_nonprime <- filter(nonPOP, prime == "0")
+totalmatings1 <- length(attributes(nonPOP_nonprime)$row.names)
+```
+
+```{r}
+nonPOP_prime <- filter(nonPOP, prime == "1")
+totalmatings2 <- length(attributes(nonPOP_prime)$row.names)
+```
+
+```{r}
+pregnant_nonprime <- filter(pregnant, prime == "0")
+totalmatings3 <- length(attributes(pregnant_nonprime)$row.names)
+```
+
+```{r}
+pregnant_prime <- filter(pregnant, prime == "1")
+totalmatings4 <- length(attributes(pregnant_prime)$row.names)
+```
+
+```{r}
+POP_nonprime <- filter(POP, prime == "0")
+totalmatings5 <- length(attributes(POP_nonprime)$row.names)
+```
+
+```{r}
+POP_prime <- filter(POP, prime == "1")
+totalmatings6 <- length(attributes(POP_prime)$row.names)
+```
+
+I then created a vector of each of the values of occurences.
+```{r}
+v2 <- c(totalmatings1, totalmatings2, totalmatings3, totalmatings4, totalmatings5, totalmatings6)
+
+barplot(v2, main = "Figure 2", xlab = "female endocrine status", ylab = "encounters observed", names.arg = c("non-periovulatory","non-periovulatory","pregnant","pregnant", "periovulatory", "periovulatory"), col = "black", density = c(100, 0, 100, 0, 100, 0), space = c(1, 0, 1, 0, 1, 0))
+```
+
+Again, this is what the figure from the paper looks like:
+
+<img src="img/Figure 2.pdf" width="500px"/>
+
 They are the same!
 
 Though the code for creating this graph is simple, the difficult part of replication was sorting through all the data that was sent to me. I was given separate spreadsheets (of various different formats) from different dates containing different data. This made it very difficult to figure out which data I should use for each part of the replication. This has taught me an important lesson for my own future research/data collection. A cleaner/simpler dataset allows less room for error in analysis and is overall more user-friendly. 
 
-# Replication 3 (Inferential)
+# Replication 3: Linear Mixed Model Analysis (Inferential)
+
+  To make sense of this data, Knott et al. (2010) used a linear mixed model analysis. As explained in the paper, all random effects were intercept only and used female identity as the subject identifier. Male identity was not used to characterize non-independence because male inclusion in the observations was not under researcher control. Additionally, female reproductive status varies substantially more than the male-specific variable of prime vs. non-prime.  
+  
+  For binary outcomes (such as type of male encountered and the occurence of mating), mixed logistic models were used. The authors used the logit.mixed procedure in R, though this package is no longer available. Instead, I will use ___ for my replication. 
+  
+  For continuous outcomes (such as the number of resistant behaviors observed), the authors used mixed linear models. This was done in an SPSS program called MIXED. The same modelling was done for the association between male and female behavior during mating interactions, though log-transformed variables were used for analysis and were then returned to linear values for reporting of estimates. I will not try to replicate this portion of the modelling. 
+  
+## Model 1:   
+  
+
+family binomial --> logistic , link == "logit"
 
 
 Questions to ask:

@@ -11,8 +11,25 @@ The paper can be accessed [here](https://github.com/natalierobinson96/data-reana
 
 # Summary of Paper
 
-  Orangutans have exceptionally high rates of forced copulations. Traditionally, it was assumed that this was a strategy used by unflanged males, who are sexually mature but have not developed secondary sexual characteristics like prime males who have large cheek flanges. Little thought was given to how female strategies may have shaped or responded to this behavior. Knott et al. (2010) found that male morph alone was not a good predictor of mating dynamics among wild Bornean orangutans, but rather female conception risk mediated the occurence of male-female interactions. 
+  Orangutans have exceptionally high rates of forced copulations. Traditionally, it was assumed that this was a strategy used by unflanged males, who are sexually mature but have not developed secondary sexual characteristics like prime males who have large cheek flanges. Little thought was given to how female strategies may have shaped or responded to this behavior. Knott et al. (2010) found that male morph alone was not a good predictor of mating dynamics among wild Bornean orangutans (*Pongo pygmaeus wurmbii*), but rather female conception risk mediated the occurence of male-female interactions. 
+  
+```{r, echo = FALSE, out.width = "50%"}
+library(knitr)
+include_graphics("http://savegporangutans.org/wp-content/uploads/2013/08/MM8117_140711_35614-Version-2.jpg")
+```
+This is a flanged male orangutan named Codet.
+
+```{r, echo = FALSE, out.width = "50%"}
+library(knitr)
+include_graphics("http://savegporangutans.org/wp-content/uploads/2013/07/MM8117_110717_01123-cropped_2.jpg")
+```
+This is an adult female, Delly, with her infant Duwyk.
+  
   Knott et al. (2010) assayed urine samples and compared ovarian hormone profiles with the sexual behavior of females and males in order to understand the females' ovulatory cycles (as they do not have obvious sexual swellings). Behavioral data was collected from 1994-2003 at the Cabang Panti Research Site in Gunung Palung National Park, West Kalimantan, Indonesia. During the 45,500 hours of observation, 387 encounters occured between males and females. Of these, male and female reproductive status could be determined for 153 encounters. 21 matings (between 10 males and 7 females) were observed during these encounters. They found that females were more likely to mate cooperatively with prime flanged males near ovulation, while they were more willing to associate and mate with non-prime males when conception risk was low. 
+
+![Bornean orangutans live in lowland rainforests.](http://savegporangutans.org/wp-content/uploads/2013/08/Lianas-in-the-jungle.jpg)  
+
+(all photos are from the [Gunung Palung Conservation website](http://savegporangutans.org/orangutans/))
 
 # Prerequisites
 First, I loaded in the required packages.

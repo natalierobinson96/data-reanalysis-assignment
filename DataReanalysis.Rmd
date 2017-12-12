@@ -14,7 +14,7 @@ The paper can be accessed [here](https://github.com/natalierobinson96/data-reana
 
 # Summary of Paper
 
-  Orangutans have exceptionally high rates of forced copulations. Traditionally, it was assumed that this was a strategy used by unflanged males, who are sexually mature but have not developed secondary sexual characteristics like prime males who have large cheek flanges. Little thought was given to how female strategies may have shaped or responded to this behavior. Knott et al. (2010) found that male morph alone was not a good predictor of mating dynamics among wild Bornean orangutans (*Pongo pygmaeus wurmbii*), but rather female conception risk mediated the occurence of male-female interactions. 
+  Orangutans have exceptionally high rates of forced copulations. Traditionally, it was assumed that this was a strategy used by unflanged males, who are sexually mature, but have not developed secondary sexual characteristics like prime males who have large cheek flanges. Little thought was given to how female strategies may have shaped or responded to this behavior. Knott et al. (2010) found that male morph alone was not a good predictor of mating dynamics among wild Bornean orangutans (*Pongo pygmaeus wurmbii*), but rather female conception risk mediated the occurence of male-female interactions. 
   
 ```{r, echo = FALSE, out.width = "50%"}
 library(knitr)
@@ -28,11 +28,13 @@ include_graphics("http://savegporangutans.org/wp-content/uploads/2013/07/MM8117_
 ```
 This is an adult female, Delly, with her infant Duwyk.
   
-  Knott et al. (2010) assayed urine samples and compared ovarian hormone profiles with the sexual behavior of females and males in order to understand the females' ovulatory cycles (as they do not have obvious sexual swellings). Behavioral data was collected from 1994-2003 at the Cabang Panti Research Site in Gunung Palung National Park, West Kalimantan, Indonesia. During the 45,500 hours of observation, 387 encounters occured between males and females. Of these, male and female reproductive status could be determined for 153 encounters. 21 matings (between 10 males and 7 females) were observed during these encounters. They found that females were more likely to mate cooperatively with prime flanged males near ovulation, while they were more willing to associate and mate with non-prime males when conception risk was low. 
+  Knott et al. (2010) assayed urine samples and compared ovarian hormone profiles with the sexual behavior of females and males in order to understand the females' ovulatory cycles (as they do not have obvious sexual swellings like many other primates). Behavioral data was collected from 1994-2003 at the Cabang Panti Research Site in Gunung Palung National Park, West Kalimantan, Indonesia. During the 45,500 hours of observation, 387 encounters occured between males and females. Of these, male and female reproductive status could be determined for 153 encounters. 21 matings (between 10 males and 7 females) were observed during these encounters. They found that females were more likely to mate cooperatively with prime flanged males near ovulation, while they were more willing to associate and mate with non-prime males when conception risk was low. 
 
 ![Bornean orangutans live in lowland rainforests.](http://savegporangutans.org/wp-content/uploads/2013/08/Lianas-in-the-jungle.jpg)
 
 (all photos are from the [Gunung Palung Conservation website](http://savegporangutans.org/orangutans/))
+
+In this reanalysis, I will attempt to replicate Figure 1, Figure 2, and Table 1. Figure 1 shows the distribution of matings with respect to male type and female ovulatory status. Figure 2 displays the distribution of female encounters with males, with respect to male type and female ovulatory status. Table 1 shows the results of the linear mixed model (LMM) analyses of female and male behaviors observed during copulations. These procedures will be described in more detail later on.
 
 # Required Packages
 First, I loaded in the required packages.
@@ -51,9 +53,9 @@ library(lmerTest)
 ```
 
 # Obtaining the Data
-I first recieved this data in various files of .sav format, as it had been exported from SPSS. I was able to open the files in R using the "foreign" package and the command read.spss, though I decided it would be easier to manipulate the data if it were in a .csv file, as I am more familiar with this.
+I first recieved this data in various files of .sav format, as it had been exported from SPSS. I was able to open the files in R using the "foreign" package and the command read.spss, though I decided it would be easier to manipulate the data if it were in a .csv file, as I am more familiar with this format.
 
-I was able to do this online using [this website](http://pspp.benpfaff.org/) where you can upload a .sav file and then download the corresponding .csv file. The files are available in my Github repository titled "data-reanalysis-assignment." First, I loaded in the main csv file, which contains all of the compiled data.
+I was able to convert the files online using [this website](http://pspp.benpfaff.org/) where you can upload a .sav file and then download the corresponding .csv file. All of the converted files are available in my Github repository titled "data-reanalysis-assignment." First, I loaded in the main csv file, which contains all of the compiled data.
 
 ```{r}
 # getting the data into R
@@ -62,11 +64,12 @@ f <- curl("https://raw.githubusercontent.com/natalierobinson96/data-reanalysis-a
 d <- read.csv(f, header = TRUE, sep = ",")
 head(d)
 ```
+This file contains the follow records in which matings occurred, and both male and female reproductive status were known. Some of the most important columns list: the female reproductive status, the male type, whether there was a social interaction, whether this interaction was with a male, and whether a mating occured.  
 
 # Figure 1 (Descriptive)
 First I replicated Figure 1 from the paper. This figure shows the distribution of matings with respect to male type and female ovulatory status.
 
-First I created 3 variables of female mating type. Each female was either pregnant, in the periovulatory period, or neither (non-periovulatory).
+I began by creating 3 variables of female mating type. Each female was either pregnant, in the periovulatory period, or neither (non-periovulatory).
 
 ```{r}
 nonPOP <- filter(d, preg == "0" & POP == "0")
@@ -122,11 +125,12 @@ POP_prime
 totalmatings6 <- length(attributes(POP_prime)$row.names)
 ```
 
-I then created a vector of each of the values of occurences.
+Finally, I created a vector of each of the values of occurences, and constructed a bar plot from this vector.
 ```{r}
 v <- c(totalmatings1, totalmatings2, totalmatings3, totalmatings4, totalmatings5, totalmatings6)
 
 barplot(v, main = "Figure 1", xlab = "female endocrine status", ylab = "mating events observed", names.arg = c("non-periovulatory","non-periovulatory","pregnant","pregnant", "periovulatory", "periovulatory"), col = "black", density = c(100, 0, 100, 0, 100, 0), space = c(1, 0, 1, 0, 1, 0))
+# this extra code is just so it has the same colors and labels as the original figure
 ```
 
 This is what the original figure from the paper looked like:
@@ -141,7 +145,7 @@ It is possible that there is a more concise way to replicate this figure, though
 
 The second figure in the paper shows the distribution of female encounters with males, with respect to male type and female ovulatory status. I planned to use a similar method to create this figure as I did for the first one (the dependent variable is now 'encounters observed'), though I ran into a lot of problems. 
 
-I recieved this dataset from the professor who is first author on this paper. She did not have the original files, so she reached out to the author who ran all the statistics for the paper. He emailed her zipped folders of all of the old versions of the dataset that he had. She then forwarded these folders to me, which contained hundreds of different documents which spanned the course of nearly 3 years. Unfortunately, all the observation data was spread out between different files which led to confusion. Additionally, the same writing conventions were not used throughout all the daat. For example, some variables were recorded as full words like "Prime" and "Nonprime" , while others were recorded as binary numbers "0" and "1". 
+I recieved this dataset from my professor who is first author on this paper. She did not have the original files, so she reached out to the author who ran all the statistics for the paper. He emailed her zipped folders of all of the old versions of the dataset that he had. She then forwarded these folders to me, which contained hundreds of different documents which spanned the course of nearly 3 years. Many of these files were different updated versions of each other. Unfortunately, all the observation data was spread out between different files which led to confusion. Additionally, the same writing conventions were not used throughout all the data. For example, some variables were recorded as full words like "Prime" and "Nonprime", while others were recorded as binary numbers "0" and "1", and others simply said "Y" or "N". 
 
 ## Attempt 1
 
@@ -154,7 +158,7 @@ d2 <- read.csv(f2, header = TRUE, sep = ",")
 head(d2)
 ```
 
-Next I created a new dataframe which only includes the observation entries (in which a male and female interacted with each other) which were included in the final analysis (in which both male and female reproductive status were known):
+Next I created a new dataframe which only includes the observation entries that were included in the final analysis. These are the observations in which a male and female interacted with each other, and both male and female reproductive status were known.
 ```{r}
 d2 <- filter(d2, InteractionwithMale == "Y")
 d2 <- filter(d2, included == "1")
@@ -180,7 +184,7 @@ head(POP) #matings with females in periovulatory period
 ```
 
 I created 6 more variables which serve as each entry of the replicated bar plot. The 3 female ovulatory statuses stay the same, though they are divided bewtween those who encountered prime males and those who encountered non-prime males (either unflanged or past-prime).
-For each variable I also counted the number of occurences of encounters by counting the number of rows. This is the same as what I did in the initial replication.
+For each variable I also counted the number of occurences of encounters by counting the number of rows. This is the same as what I did in the first replication.
 
 ```{r}
 nonPOP_nonprime <- filter(nonPOP, prime == "0")
@@ -207,7 +211,7 @@ POP_prime <- filter(POP, prime == "1")
 totalmatings6 <- length(attributes(POP_prime)$row.names)
 ```
 
-I then created a vector of each of the values of occurences.
+I then created a vector of each of the values of occurences, as I did before, and created a bar plot.
 ```{r, eval = FALSE}
 v2 <- c(totalmatings1, totalmatings2, totalmatings3, totalmatings4, totalmatings5, totalmatings6)
 
@@ -222,7 +226,7 @@ This replication did not turn out the same as the original figure. The "pregnant
 
 ## Attempt 2
 
-I loaded in the other converted file and created a new dataframe which only includes the observations which are in the final analysis:
+I loaded in the other converted file (which contains fewer observation entries) and created a new dataframe which only includes the observations which are in the final analysis:
 ```{r}
 # getting the data into R
 library(curl)
@@ -258,7 +262,7 @@ POP_prime <- filter(d2, POPprime == "1")
 totalmatings6 <- length(attributes(POP_prime)$row.names)
 ```
 
-I then created a vector of each of the values of occurences.
+I then created a vector of each of the values of occurences, and created a bar plot.
 ```{r}
 v2 <- c(totalmatings1, totalmatings2, totalmatings3, totalmatings4, totalmatings5, totalmatings6)
 
@@ -269,7 +273,7 @@ Here, the "periovulatory" columns remain correct, the "pregnant" columns are now
 
 ## Attempt 3
 
-After trying more iterations of code with both of the files, I noticed a column titled "endomiss" in the original long version of the interactions file. This column is filled in for each interaciton observation with either a "0" or "1". My best guess is that this indicates whether or not the endocrine data from urine samples is missing or not. "0" would indicate that it is not missing (so the interaction can be used), while "1" would indicate that the endocrine data is missing, and should be excluded from the analysis. I added this into the filter of my original code to see if it would help me.
+After trying more iterations of code with both of the files, I noticed a column titled "endomiss" in the original long version of the interactions file. This column is filled in for each interaciton observation with either a "0" or "1". My best guess is that this indicates whether or not the endocrine data from urine samples is missing or not. "0" would indicate that it is not missing (so the interaction can be used), while "1" would indicate that the endocrine data is missing, and should be excluded from the analysis. I added this into the filtering of my original code to see if it would help me.
 
 First, I loaded the original set of data in to R.
 ```{r}
@@ -331,7 +335,7 @@ POP_prime <- filter(POP, prime == "1")
 totalmatings6 <- length(attributes(POP_prime)$row.names)
 ```
 
-I then created a vector of each of the values of occurences.
+I then created a vector of each of the values of occurences, and plotted this.
 ```{r}
 v2 <- c(totalmatings1, totalmatings2, totalmatings3, totalmatings4, totalmatings5, totalmatings6)
 
@@ -344,23 +348,23 @@ Again, this is what the figure from the paper looks like:
 
 They are the same!
 
-Though the code for creating this graph is simple, the difficult part of replication was sorting through all the data that was sent to me. I was given separate spreadsheets (of various different formats) from different dates containing different data. This made it very difficult to figure out which data I should use for each part of the replication. This has taught me an important lesson for my own future research/data collection. A cleaner/simpler dataset allows less room for error in analysis and is overall more user-friendly. 
+Though the code for creating this graph is simple, the difficult part of replication was sorting through all the data that was sent to me. I was given separate spreadsheets (of various different formats) from different dates containing different data. This made it very difficult to figure out which data I should use for each part of the replication. This has taught me an important lesson for my own future research/data collection. A cleaner, more simple dataset allows less room for error in analysis and is overall more user-friendly. 
 
 # Linear Mixed Model Analysis (Inferential)
 
-  To make sense of this data, Knott et al. (2010) used linear mixed model analyses. As explained in the paper, all random effects were intercept only and used female identity as the subject identifier. Male identity was not used to characterize non-independence because male inclusion in the observations was not under researcher control. Additionally, female reproductive status varies substantially more than the male-specific variable of prime vs. non-prime.  
+  To better understand this data, Knott et al. (2010) used linear mixed model analyses. As explained in the paper, all random effects were intercept only and they used female identity as the subject identifier. Male identity was not used to characterize non-independence because male inclusion in the observations was not under researcher control. Additionally, female reproductive status varies substantially more than the male-specific variable of prime versus non-prime.  
   
   For continuous outcomes (such as the number of resistant behaviors observed), the authors used mixed linear models. This was done in an SPSS program called MIXED. I will use the lmer() function in the lme4 package. Since the number of behaviors in each category were skewed, log transformed variables were used for the analysis, and were later returned to linear values for the reporting of estimates (Figure 3 in the paper). The same modeling was done for the association between male and female behavior during mating interactions.
   
-    For binary outcomes (such as type of male encountered and the occurence of mating), mixed logistic models were used. The authors used the logit.mixed procedure in R, though this package is no longer available. Instead, I used the glmer() function in the lme4 package for my replication. 
+  For binary outcomes (such as type of male encountered and the occurence of mating), mixed logistic models were used. The authors used the logit.mixed procedure in R, though this package is no longer available. Instead, I used the glmer() function in the lme4 package for my replication. 
 
 ## Linear Mixed Model Analysis of Female and Male Behaviors Observed During Copulation (Table 1)
 
-Table 1 in the paper (below) shows the results of linear mixed model analyses of different female and male behaviors during mating.  The behaviors in each category were skewed, so log-transformed variables were used for analysis. The authors used female reproductive status and male type as main effects. In separate models, the interaction of female reproductive status and male type were included to test the primary hypotheses. Results are reported as F statistics, meaning an ANOVA was done to test the significant differences between models. The rows indicate the type of behavior, and the columns indicate which variable was left in the model when being compared with the full model (with female reproductive status and male type).
+Table 1 in the paper (below) shows the results of linear mixed model analyses of different female and male behaviors during mating.  The behaviors in each category were skewed, so log-transformed variables were used for analysis. The authors used female reproductive status and male type as main effects. In separate models, the interaction of female reproductive status and male type were included to test the primary hypotheses. Results are reported as F statistics, meaning an ANOVA was done to test the significant differences between models. The rows indicate the type of behavior, and the columns indicate which variable was left in the model when being compared with the full model (with both female reproductive status and male type).
 
-<img src="img/Table 1.pdf" width="500px"/>
+<img src="img/Table 1.pdf" width="600px"/>
 
-The authors decided that in order to investigate the distribution of male and female behaviors within matings, they needed to use a more inclusive dataset (rather than the 22 observations of mating where all reproductive statuses were known). Thus, observations of mating with unclassified reproductive state were assumed to be non-periovulatory, as this is the state in which females are most likely to be in due to their long inter-birth intervals. This prevents having categories with zero observations and creates a larger sample size.
+The authors decided that in order to investigate the distribution of male and female behaviors within matings, they needed to use a more inclusive dataset (rather than the 22 observations of mating where all reproductive statuses were known). Thus, observations of mating with unclassified female reproductive state were assumed to be non-periovulatory, as this is the state in which females are most likely in due to their long inter-birth intervals. This prevents having categories with zero observations and creates a larger sample size (n=42).
 
 First I loaded in the dataset and altered the dataframe so that only the relevant columns were showing.
 ```{r}
@@ -375,10 +379,13 @@ summary(d4)
 
 As done in Module 18, I began with some exploratory visualization.
 First, I looked at the proceptive behaviors from females in relation to each individual female. This plot shows that there is a lot of variation between the number of proceptive behaviors observed between different females. This is why the female ID was treated as a random effect.
+
 ```{r}
 par(mfrow = c(1, 1))
 boxplot(data = d4, TOTAL.PROCEPTIVE ~ FEMALE, col = c("lightpink1"))
 ```
+
+
 Variation can also be seen in number of resistance behaviors between females.
 ```{r}
 par(mfrow = c(1, 1))
@@ -390,7 +397,7 @@ More proceptive behaviors were directed towards flanged males.
 boxplot(data = d4, TOTAL.PROCEPTIVE ~ MALE.AGE.CLASS.I, col = c("burlywood2", "lightpink1"))
 ```
 
-This figure displays that the most proceptive behaviors were shown by pregnant females (the median is way higher) as stated in the paper.
+This figure confirms that the most proceptive behaviors were shown by pregnant females (the median is way higher) as stated in the paper.
 ```{r}
 boxplot(data = d4, TOTAL.PROCEPTIVE ~ FReproStatus, col = c("burlywood2", "lightpink1"))
 ```
@@ -399,27 +406,19 @@ boxplot(data = d4, TOTAL.PROCEPTIVE ~ FReproStatus, col = c("burlywood2", "light
 boxplot(data = d4, TOTAL.RESISTANCE ~ FReproStatus * MALE.AGE.CLASS.I, col = c("burlywood2", "lightpink1", "lightgreen", "lightblue"))
 ```
 
-The paper also states that, in contrast to other reports, they found that male aggressive behaviors in the context of mating were performed more often by prime than non-prime males. This trend can be seen in the following plot:
+The paper also states that, in contrast to other reports, they found male aggressive behaviors in the context of mating were performed more often by prime than non-prime males. This trend can be seen in the following plot:
 ```{r}
 par(mfrow = c(1, 1))
-boxplot(data = d4, MALE.AGGRESSION ~ MALE.AGE.CLASS.I, col = c("lightpink1"))
+boxplot(data = d4, MALE.AGGRESSION ~ MALE.AGE.CLASS.I, col = c("lightpink1", "lightblue"))
 ```
 
-They explained that these behaviors were not directed significantly more towards any particular female reproductive class.
+They explained that these behaviors were not directed significantly more towards any particular female reproductive class, as seen below:
 ```{r}
 par(mfrow = c(1, 1))
-boxplot(data = d4, MALE.AGGRESSION ~ FReproStatus, col = c("lightgreen"))
+boxplot(data = d4, MALE.AGGRESSION ~ FReproStatus, col = c("lightgreen", "lightblue"))
 ```
 
-Then I began the replication of the row in which the response variable is "female proceptive behaviours".
-```{r}
-library(lme4)
-lme <- lmer(data = d4, TOTAL.PROCEPTIVE ~ FReproStatus + MALE.AGE.CLASS.I + FReproStatus:MALE.AGE.CLASS.I + (1 | FEMALE))
-summary(lme)
-```
-```{r}
-coefficients(lme)
-```
+Then I began the replication of the first row of Table 1 in which the response variable is "female proceptive behaviours".
 
 I began by creating the full model, in which both female reproductive status and male type are included as main effects. I also took the log of the number of resistant behaviors, as the authors explained they used log-transformed variables (reproductive status and male type are categorical, so the log can not be done on those variables).
 ```{r}
@@ -439,7 +438,7 @@ anova(reduced1, full, test = "F")
 ```
 This ANOVA (using the anova() function in the {stats} package) provided me with a Chi squared value rather than an F-Statistic (as used in the paper).
 
-I then used the Anova() function in the {car} package to obtain the F-Statistic.
+I then used the Anova() function in the {car} package, which allowed me to obtain the F-Statistic.
 ```{r}
 library(car)
 Anova(reduced1, full, type = c("II", "III", 2, 3), test = "F")
@@ -489,7 +488,7 @@ Anova(reduced2, full, type = c("II", "III", 2, 3), test = "F")
 ```
 This result is different than what was found in the paper. It should be F(1,42) = 2.7, p = 0.110.
 
-I could not find the observations of male inspection behaviors in the data I was given, so was unable to attempt the replication of this.
+I could not find the observations of male inspection behaviors in the data I was given, so was unable to attempt the replication of this model (the third row of Table 1).
 
 Finally, I repeated the above steps for the male aggresive behaviors (the last row of Table 1).
 ```{r}
@@ -497,6 +496,7 @@ full <- lmer(data = d4, log(MALE.AGGRESSION) ~ FReproStatus + MALE.AGE.CLASS.I +
 summary(full)
 ```
 
+The first reduced model:
 ```{r}
 reduced1 <- lmer(data = d4, log(MALE.AGGRESSION) ~ FReproStatus + (1 | FEMALE))
 summary(reduced1)
@@ -509,17 +509,19 @@ Anova(reduced1, full, type = c("II", "III", 2, 3), test = "F")
 ```
 This result is different than what was found in the paper. It should be F(2,42) = 0, p = 0.966.
 
+The second reduced model:
 ```{r}
 reduced2 <- lmer(data = d4, log(MALE.AGGRESSION) ~ MALE.AGE.CLASS.I + (1 | FEMALE))
 summary(reduced2)
 ```
 
+Another ANOVA:
 ```{r}
 Anova(reduced2, full, type = c("II", "III", 2, 3), test = "F")
 ```
 This result is different than what was found in the paper. It should be F(1,42) = 5.1, p = 0.029.
 
-The authors also created separate models which include the interaction of female reproductive status and male type.
+The authors also created separate models which include the interaction of female reproductive status and male type. In the code below, interaction terms are indicated with a colon between the two variables ("FReproStatus:MALE.AGE.CLASS.I"). I created models for female proceptive behaviors, female resistance behaviors, and male agressive behaviors.
 ```{r}
 full2 <- lmer(data = d4, TOTAL.PROCEPTIVE ~ FReproStatus:MALE.AGE.CLASS.I + (1 | FEMALE), REML = FALSE)
 summary(full2)
@@ -558,7 +560,7 @@ Then I calculated the range and mean of these values.
 range(mating_mins, na.rm = TRUE)
 mean(mating_mins, na.rm = TRUE)
 ```
-Here, the range of the lengths of matings is 1-31, which matches what was stated in the paper. However, the average length was longer than what was reported. I am confident that I properly calculated the average of this list of mating lengths, which leads me to believe I may be using the incorrect dataset for this set of analyses, and that is part of the reason I am not getting the same values.
+Here, the range of the lengths of matings is 1-31, which matches what was stated in the paper. However, the average length was about 0.3 minutes longer than what was reported. I am confident that I properly calculated the average of this list of mating lengths, which leads me to believe I may be using the incorrect dataset for this set of analyses, and that is part of the reason I am not getting the same values.
 
 ## Generalized Linear Mixed Model -- Type of Male Encountered 
 

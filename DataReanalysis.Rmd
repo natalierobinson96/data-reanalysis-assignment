@@ -34,7 +34,7 @@ This is an adult female, Delly, with her infant Duwyk.
 
 (all photos are from the [Gunung Palung Conservation website](http://savegporangutans.org/orangutans/))
 
-# Prerequisites
+# Required Packages
 First, I loaded in the required packages.
 ```{r}
 library(curl)
@@ -47,10 +47,12 @@ library(broom)
 library(graphics)
 library(lme4)
 library(car)
+library(lmerTest)
 ```
 
 # Obtaining the Data
 I first recieved this data in various files of .sav format, as it had been exported from SPSS. I was able to open the files in R using the "foreign" package and the command read.spss, though I decided it would be easier to manipulate the data if it were in a .csv file, as I am more familiar with this.
+
 I was able to do this online using [this website](http://pspp.benpfaff.org/) where you can upload a .sav file and then download the corresponding .csv file. The files are available in my Github repository titled "data-reanalysis-assignment." First, I loaded in the main csv file, which contains all of the compiled data.
 
 ```{r}
@@ -348,13 +350,13 @@ Though the code for creating this graph is simple, the difficult part of replica
 
   To make sense of this data, Knott et al. (2010) used linear mixed model analyses. As explained in the paper, all random effects were intercept only and used female identity as the subject identifier. Male identity was not used to characterize non-independence because male inclusion in the observations was not under researcher control. Additionally, female reproductive status varies substantially more than the male-specific variable of prime vs. non-prime.  
   
-  For binary outcomes (such as type of male encountered and the occurence of mating), mixed logistic models were used. The authors used the logit.mixed procedure in R, though this package is no longer available. Instead, I will use the glmer() function in the lme4 package for my replication. 
+  For continuous outcomes (such as the number of resistant behaviors observed), the authors used mixed linear models. This was done in an SPSS program called MIXED. I will use the lmer() function in the lme4 package. Since the number of behaviors in each category were skewed, log transformed variables were used for the analysis, and were later returned to linear values for the reporting of estimates (Figure 3 in the paper). The same modeling was done for the association between male and female behavior during mating interactions.
   
-  For continuous outcomes (such as the number of resistant behaviors observed), the authors used mixed linear models. This was done in an SPSS program called MIXED. I will use the lmer() function in the lme4 package. The same modelling was done for the association between male and female behavior during mating interactions, though log-transformed variables were used for analysis and were then returned to linear values for reporting of estimates.
+    For binary outcomes (such as type of male encountered and the occurence of mating), mixed logistic models were used. The authors used the logit.mixed procedure in R, though this package is no longer available. Instead, I used the glmer() function in the lme4 package for my replication. 
 
 ## Linear Mixed Model Analysis of Female and Male Behaviors Observed During Copulation (Table 1)
 
-Table 1 in the paper (below) shows the results of linear mixed model analyses of different female and male behaviors during mating.  The behaviors in each category were skewed, so log-transformed variables were used for analysis. The authors used female reproductive status and male type as main effects. In separate models, the interaction of female reproductive status and male type were included to test the primary hypotheses. Results are reported as F statistics, meaning an ANOVA was done to test the significant differences between models. The rows indicate the type of behavior, and the columns indicate which variable was left in the model when being compared with the full model (with female reproductive status and male type). 
+Table 1 in the paper (below) shows the results of linear mixed model analyses of different female and male behaviors during mating.  The behaviors in each category were skewed, so log-transformed variables were used for analysis. The authors used female reproductive status and male type as main effects. In separate models, the interaction of female reproductive status and male type were included to test the primary hypotheses. Results are reported as F statistics, meaning an ANOVA was done to test the significant differences between models. The rows indicate the type of behavior, and the columns indicate which variable was left in the model when being compared with the full model (with female reproductive status and male type).
 
 <img src="img/Table 1.pdf" width="500px"/>
 
@@ -377,10 +379,10 @@ First, I looked at the proceptive behaviors from females in relation to each ind
 par(mfrow = c(1, 1))
 boxplot(data = d4, TOTAL.PROCEPTIVE ~ FEMALE, col = c("lightpink1"))
 ```
-
-This plot shows that the most proceptive behaviors came from females in their periovulatory period.
+Variation can also be seen in number of resistance behaviors between females.
 ```{r}
-boxplot(data = d4, TOTAL.PROCEPTIVE ~ FReproStatus, col = c("burlywood2", "lightpink1", "lightblue"))
+par(mfrow = c(1, 1))
+boxplot(data = d4, TOTAL.RESISTANCE ~ FEMALE, col = c("lightblue1"))
 ```
 
 More proceptive behaviors were directed towards flanged males.
@@ -388,8 +390,25 @@ More proceptive behaviors were directed towards flanged males.
 boxplot(data = d4, TOTAL.PROCEPTIVE ~ MALE.AGE.CLASS.I, col = c("burlywood2", "lightpink1"))
 ```
 
+This figure displays that the most proceptive behaviors were shown by pregnant females (the median is way higher) as stated in the paper.
+```{r}
+boxplot(data = d4, TOTAL.PROCEPTIVE ~ FReproStatus, col = c("burlywood2", "lightpink1"))
+```
+
 ```{r}
 boxplot(data = d4, TOTAL.RESISTANCE ~ FReproStatus * MALE.AGE.CLASS.I, col = c("burlywood2", "lightpink1", "lightgreen", "lightblue"))
+```
+
+The paper also states that, in contrast to other reports, they found that male aggressive behaviors in the context of mating were performed more often by prime than non-prime males. This trend can be seen in the following plot:
+```{r}
+par(mfrow = c(1, 1))
+boxplot(data = d4, MALE.AGGRESSION ~ MALE.AGE.CLASS.I, col = c("lightpink1"))
+```
+
+They explained that these behaviors were not directed significantly more towards any particular female reproductive class.
+```{r}
+par(mfrow = c(1, 1))
+boxplot(data = d4, MALE.AGGRESSION ~ FReproStatus, col = c("lightgreen"))
 ```
 
 Then I began the replication of the row in which the response variable is "female proceptive behaviours".
@@ -500,11 +519,50 @@ Anova(reduced2, full, type = c("II", "III", 2, 3), test = "F")
 ```
 This result is different than what was found in the paper. It should be F(1,42) = 5.1, p = 0.029.
 
+The authors also created separate models which include the interaction of female reproductive status and male type.
+```{r}
+full2 <- lmer(data = d4, TOTAL.PROCEPTIVE ~ FReproStatus:MALE.AGE.CLASS.I + (1 | FEMALE), REML = FALSE)
+summary(full2)
+```
+
+```{r}
+full3 <- lmer(data = d4, TOTAL.RESISTANCE ~ FReproStatus:MALE.AGE.CLASS.I + (1 | FEMALE), REML = FALSE)
+summary(full3)
+```
+
+```{r}
+full4 <- lmer(data = d4, MALE.AGGRESSION ~ FReproStatus:MALE.AGE.CLASS.I + (1 | FEMALE), REML = FALSE)
+summary(full4)
+```
+
 I have tried endless variations of this code and still cannot figure out why I am not successfully replicating the analysis. While it is possible that I could have figured this out with more time, I have thought of a few possibilities of where I went wrong. I could be log-transforming the data incorrectly, I could be misinterpretting what Table 1 is meant to show, or I could be using the completely wrong spreadsheet of data. However, I have tried altering all of these factors, and am still unsuccessful. It is also possible that other effects went into the model (such as length of mating, number of pelvic thrusts, juvenile distress behaviors, or forced vs unforced mating) which were not properly explained in the methods section of the paper, and therefore I failed to include them. This is possible, as these variables are recorded in the dataset, though not explicitly mentioned in the paper.
 
+Knott et al. (2010) stated that matings lasted an average of 7.9 minutes, with a range of 1-31 minutes.
+
+I loaded in the same dataset I used for the LMM, without any of the prior modifications.
+```{r}
+f <- curl("https://raw.githubusercontent.com/natalierobinson96/data-reanalysis-assignment/master/ohmatingspss2.csv")
+d5 <- read.csv(f, header = TRUE, sep = ",")
+mating_lengths <- d5$Length.of.Mating
+mating_lengths
+```
+
+It seems as though these values were recorded as seconds, so I will convert them to minutes.
+```{r}
+mating_mins <- mating_lengths/60
+mating_mins
+```
+
+Then I calculated the range and mean of these values.
+```{r}
+range(mating_mins, na.rm = TRUE)
+mean(mating_mins, na.rm = TRUE)
+```
+Here, the range of the lengths of matings is 1-31, which matches what was stated in the paper. However, the average length was longer than what was reported. I am confident that I properly calculated the average of this list of mating lengths, which leads me to believe I may be using the incorrect dataset for this set of analyses, and that is part of the reason I am not getting the same values.
+
 ## Generalized Linear Mixed Model -- Type of Male Encountered 
-  
-  Mating and female reproductive state: the distribution of matings (42) was strongly predicted by the interaction of male type and female reproductive status
+
+As I was unsucessful with the previous model, I decided to attempt to replicate a GLMM used in the paper, despite not having a complete understanding of this topic. Unfortunately, I did not have time to finish this section of the replication. 
 
 First I loaded in the interactions dataset.
 ```{r}
@@ -578,3 +636,5 @@ Here, the fixed effects are the female reproductive status and male type. The ra
 full <- glmer(MatingBinary ~ femrepo + maletype + (1|Name2), data = d3, family = binomial(link = "logit"))
 summary(full)
 ```
+
+Knott et al. (2010) found that the distribution of matings was strongly predicted by the interaction of male type and female reproductive status. They found the Chi square for global effect = 425, d.f = 2, p < 0.001

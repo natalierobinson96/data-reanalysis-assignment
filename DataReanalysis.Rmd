@@ -38,6 +38,7 @@ This is an adult female, Delly, with her infant Duwyk.
 First, I loaded in the required packages.
 ```{r}
 library(curl)
+library(plyr)
 library(dplyr)
 library(stats)
 library(AICcmodavg)
@@ -45,6 +46,7 @@ library(knitr)
 library(broom)
 library(graphics)
 library(lme4)
+library(car)
 ```
 
 # Obtaining the Data
@@ -499,3 +501,80 @@ Anova(reduced2, full, type = c("II", "III", 2, 3), test = "F")
 This result is different than what was found in the paper. It should be F(1,42) = 5.1, p = 0.029.
 
 I have tried endless variations of this code and still cannot figure out why I am not successfully replicating the analysis. While it is possible that I could have figured this out with more time, I have thought of a few possibilities of where I went wrong. I could be log-transforming the data incorrectly, I could be misinterpretting what Table 1 is meant to show, or I could be using the completely wrong spreadsheet of data. However, I have tried altering all of these factors, and am still unsuccessful. It is also possible that other effects went into the model (such as length of mating, number of pelvic thrusts, juvenile distress behaviors, or forced vs unforced mating) which were not properly explained in the methods section of the paper, and therefore I failed to include them. This is possible, as these variables are recorded in the dataset, though not explicitly mentioned in the paper.
+
+## Generalized Linear Mixed Model -- Type of Male Encountered 
+  
+  Mating and female reproductive state: the distribution of matings (42) was strongly predicted by the interaction of male type and female reproductive status
+
+First I loaded in the interactions dataset.
+```{r}
+f3 <- curl("https://raw.githubusercontent.com/natalierobinson96/data-reanalysis-assignment/master/interactions.csv")
+d3 <- read.csv(f3, header = TRUE, sep = ",")
+```
+
+I filtered the data to only inlcude the interactions in which all reproductive statuses were known. I selected only the relevant columns for this analysis.
+```{r}
+d3 <- filter(d3, endomiss == "0")
+d3 <- filter(d3, included == "1")
+```
+
+Since the first model has binary outcomes I wanted the observations to be recorded as "0" and "1" instead of "N" and "Y", respectively.
+```{r}
+SocialInteractionBinary <- revalue(d3$SocialInteraction, c("Y" = 1, "N" = 0, "Maybe" = 0, "partial" = 0, "Data missing" = 0, "Data Missing" = 0, "don't know" = 0, "Missing" = 0))
+MaleInteractionBinary <- revalue(d3$InteractionwithMale, c("Y" = 1, "N" = 0, "C" = 0, "Maybe" = 0, "NN" = 0, "y" = 1))
+MatingBinary <- revalue(d3$Mating, c("Y" = 1, "N" = 0, "?" = 0))
+d3 <- data.frame(SocialInteractionBinary, MaleInteractionBinary, MatingBinary, d3)
+d3 <- select(d3, Name2, SocialInteractionBinary, MaleInteractionBinary, MatingBinary, POP, preg, lact, prime, past, unflanged)
+head(d3)
+```
+
+Then I created a new column which indicated the female reproductive status
+```{r}
+library(plyr)
+d3$femrepo <- NA
+
+for(i in 1:153) {
+  if(d3$POP[i] == 1) {
+    d3$femrepo[i] <- "POP"
+  }
+}
+
+for(i in 1:153) {
+  if(d3$preg[i] == 1) {
+    d3$femrepo[i] <- "preg"
+  }
+}
+
+for(i in 1:153) {
+  if(d3$POP[i] == 0 & d3$preg[i] == 0) {
+    d3$femrepo[i] <- "nonPOP"
+  }
+}
+
+d3$maletype <- NA
+
+for(i in 1:153) {
+  if(d3$unflanged[i] == 1) {
+    d3$maletype[i] <- "unflanged"
+  }
+}
+
+for(i in 1:153) {
+  if(d3$unflanged[i] == 0) {
+    d3$maletype[i] <- "flanged"
+  }
+}
+
+d3 <- select(d3, Name2, SocialInteractionBinary, MaleInteractionBinary, MatingBinary, femrepo, maletype)
+head(d3)
+```
+
+```{r}
+summary(d3)
+```
+
+Here, the fixed effects are the female reproductive status and male type. The random effect is the female ID.
+```{r}
+full <- glmer(MatingBinary ~ femrepo + maletype + (1|Name2), data = d3, family = binomial(link = "logit"))
+summary(full)
+```
